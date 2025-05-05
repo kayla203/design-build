@@ -82,7 +82,7 @@ const Viewport3D = ({ selectedElements, className }) => {
     const width = 20;
     const depth = 20;
     const height = 10;
-
+    const roofHeight = 5;
     // Create triangular wall shapes
     const wallShape = new THREE.Shape();
     wallShape.moveTo(-width/2, 0);
@@ -132,7 +132,7 @@ const Viewport3D = ({ selectedElements, className }) => {
     scene.add(wallRight);
 
     // Roof with interlocking parts
-    const roofHeight = 5;
+    // const roofHeight = 5;
     const roofOverhang = 1;
     const roofWidth = width + roofOverhang * 2;
     const roofDepth = depth + roofOverhang * 2;
