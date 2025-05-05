@@ -16,7 +16,26 @@ const Viewport3D = ({ selectedElements, className }) => {
     // Scene setup
     const scene = new THREE.Scene();
     sceneRef.current = scene;
-    scene.background = new THREE.Color(0x1a1a1a);
+    
+    // Create skybox
+    const skyLoader = new THREE.CubeTextureLoader();
+    const skyboxTexture = skyLoader.load([
+      '/src/images/New folder/px.png',
+      '/src/images/New folder/nx.png',
+      '/src/images/New folder/py.png',
+      '/src/images/New folder/ny.jpg',
+      '/src/images/New folder/pz.png',
+      '/src/images/New folder/nz.jpg'
+    ]);
+    scene.background = skyboxTexture;
+
+    // Load materials
+    const textureLoader = new THREE.TextureLoader();
+    const wallTexture = textureLoader.load('/src/images/mat.png');
+    const grassTexture = textureLoader.load('/src/images/grass.png');
+    grassTexture.wrapS = THREE.RepeatWrapping;
+    grassTexture.wrapT = THREE.RepeatWrapping;
+    grassTexture.repeat.set(10, 10);
 
     // Camera setup
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -37,68 +56,123 @@ const Viewport3D = ({ selectedElements, className }) => {
 
     // Create ground
     const groundGeometry = new THREE.PlaneGeometry(100, 100);
-    const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x90EE90 });
+    const groundMaterial = new THREE.MeshPhongMaterial({ 
+      map: grassTexture,
+      color: 0xFFFFFF
+    });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     scene.add(ground);
 
-    // Create house components
-    const wallMaterial = new THREE.MeshPhongMaterial({ color: 0xFFFFFF }); // White walls
-    const roofMaterial = new THREE.MeshPhongMaterial({ color: 0xFF4400 }); // Red roof
+    // Create materials
+    const wallMaterial = new THREE.MeshPhongMaterial({ 
+      map: wallTexture,
+      color: 0xCCCCCC 
+    });
+    const roofMaterial = new THREE.MeshPhongMaterial({ 
+      map: wallTexture,
+      color: 0x8B4513 
+    });
+    const trimMaterial = new THREE.MeshPhongMaterial({ 
+      map: wallTexture,
+      color: 0x4A4A4A 
+    });
 
     // House dimensions (scaled down from feet to units)
     const width = 20;
     const depth = 20;
     const height = 10;
 
+    // Create triangular wall shapes
+    const wallShape = new THREE.Shape();
+    wallShape.moveTo(-width/2, 0);
+    wallShape.lineTo(width/2, 0);
+    wallShape.lineTo(width/2, height);
+    wallShape.lineTo(0, height + roofHeight);
+    wallShape.lineTo(-width/2, height);
+    wallShape.lineTo(-width/2, 0);
+
+    const wallGeometry = new THREE.ShapeGeometry(wallShape);
+    
     // Front wall
-    const wallFront = new THREE.Mesh(
-      new THREE.BoxGeometry(width, height, 0.2),
-      wallMaterial
-    );
-    wallFront.position.set(0, height/2, depth/2);
+    const wallFront = new THREE.Mesh(wallGeometry, wallMaterial);
+    wallFront.position.set(0, 0, depth/2);
     meshesRef.current.wall_front = wallFront;
     scene.add(wallFront);
 
     // Back wall
     const wallBack = wallFront.clone();
     wallBack.position.z = -depth/2;
+    wallBack.rotation.y = Math.PI;
     meshesRef.current.wall_back = wallBack;
     scene.add(wallBack);
 
+    // Side walls with adjusted height for roof
+    const sideWallShape = new THREE.Shape();
+    sideWallShape.moveTo(0, 0);
+    sideWallShape.lineTo(depth, 0);
+    sideWallShape.lineTo(depth, height);
+    sideWallShape.lineTo(0, height);
+    sideWallShape.lineTo(0, 0);
+
+    const sideWallGeometry = new THREE.ShapeGeometry(sideWallShape);
+
     // Left wall
-    const wallLeft = new THREE.Mesh(
-      new THREE.BoxGeometry(0.2, height, depth),
-      wallMaterial
-    );
-    wallLeft.position.set(-width/2, height/2, 0);
+    const wallLeft = new THREE.Mesh(sideWallGeometry, wallMaterial);
+    wallLeft.position.set(-width/2, 0, depth/2);
+    wallLeft.rotation.y = -Math.PI/2;
     meshesRef.current.wall_left = wallLeft;
     scene.add(wallLeft);
 
     // Right wall
     const wallRight = wallLeft.clone();
     wallRight.position.x = width/2;
+    wallRight.rotation.y = Math.PI/2;
     meshesRef.current.wall_right = wallRight;
     scene.add(wallRight);
 
-    // Roof parts
+    // Roof with interlocking parts
     const roofHeight = 5;
-    const roofOverhang = 0.5;
+    const roofOverhang = 1;
     const roofWidth = width + roofOverhang * 2;
     const roofDepth = depth + roofOverhang * 2;
-    
-    const roofGeometry = new THREE.BoxGeometry(roofWidth/2, 0.2, roofDepth);
+
+    // Create interlocking roof geometry
+    const roofShape = new THREE.Shape();
+    roofShape.moveTo(-roofWidth/4, 0);
+    roofShape.lineTo(roofWidth/4, roofHeight);
+    roofShape.lineTo(roofWidth/2, 0);
+    roofShape.lineTo(-roofWidth/4, 0);
+
+    const roofGeometry = new THREE.ExtrudeGeometry(roofShape, {
+      depth: roofDepth,
+      bevelEnabled: false
+    });
+
     const roofLeft = new THREE.Mesh(roofGeometry, roofMaterial);
-    roofLeft.position.set(-roofWidth/4, height + roofHeight/2, 0);
-    roofLeft.rotation.z = Math.PI / 6;
+    roofLeft.position.set(-roofWidth/4, height, roofDepth/2);
     meshesRef.current.roof_left = roofLeft;
     scene.add(roofLeft);
 
-    const roofRight = new THREE.Mesh(roofGeometry, roofMaterial);
-    roofRight.position.set(roofWidth/4, height + roofHeight/2, 0);
-    roofRight.rotation.z = -Math.PI / 6;
+    const roofRight = roofLeft.clone();
+    roofRight.position.x = roofWidth/4;
+    roofRight.rotation.y = Math.PI;
     meshesRef.current.roof_right = roofRight;
     scene.add(roofRight);
+
+    // Add trims
+    const trimGeometry = new THREE.BoxGeometry(0.4, height, 0.4);
+    const createTrim = (x, z) => {
+      const trim = new THREE.Mesh(trimGeometry, trimMaterial);
+      trim.position.set(x, height/2, z);
+      scene.add(trim);
+    };
+
+    // Add trims at wall corners
+    createTrim(-width/2, depth/2);
+    createTrim(width/2, depth/2);
+    createTrim(-width/2, -depth/2);
+    createTrim(width/2, -depth/2);
 
     // Add directional light for sunny day effect
     const sunLight = new THREE.DirectionalLight(0xffffbb, 1.5);
