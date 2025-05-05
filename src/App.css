@@ -76,3 +76,44 @@
   border-left: 1px solid #404040;
   padding: 1rem;
 }
+
+.tree-view {
+  color: #fff;
+}
+
+.tree-item {
+  margin: 8px 0;
+}
+
+.tree-item-header {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.tree-item-header:hover {
+  background-color: #404040;
+}
+
+.tree-item-children {
+  margin-left: 16px;
+}
+
+.color-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.color-picker label {
+  color: #fff;
+}
+
+.color-picker input[type="color"] {
+  width: 100%;
+  height: 40px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+}
