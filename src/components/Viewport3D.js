@@ -21,7 +21,8 @@ const Viewport3D = ({ selectedElements, className }) => {
     // Camera setup
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     cameraRef.current = camera;
-    camera.position.z = 5;
+    camera.position.set(30, 20, 30);
+    camera.lookAt(0, 0, 0);
 
     // Renderer setup
     const renderer = new THREE.WebGLRenderer();
@@ -35,56 +36,66 @@ const Viewport3D = ({ selectedElements, className }) => {
     controls.enableDamping = true;
 
     // Create ground
-    const groundGeometry = new THREE.PlaneGeometry(20, 20);
+    const groundGeometry = new THREE.PlaneGeometry(100, 100);
     const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x90EE90 });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     scene.add(ground);
 
     // Create house components
-    const wallMaterial = new THREE.MeshPhongMaterial({ color: 0xcccccc });
-    const roofMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+    const wallMaterial = new THREE.MeshPhongMaterial({ color: 0xFFFFFF }); // White walls
+    const roofMaterial = new THREE.MeshPhongMaterial({ color: 0xFF4400 }); // Red roof
+
+    // House dimensions (scaled down from feet to units)
+    const width = 20;
+    const depth = 20;
+    const height = 10;
 
     // Front wall
     const wallFront = new THREE.Mesh(
-      new THREE.BoxGeometry(4, 3, 0.2),
+      new THREE.BoxGeometry(width, height, 0.2),
       wallMaterial
     );
-    wallFront.position.set(0, 1.5, 2);
+    wallFront.position.set(0, height/2, depth/2);
     meshesRef.current.wall_front = wallFront;
     scene.add(wallFront);
 
     // Back wall
     const wallBack = wallFront.clone();
-    wallBack.position.z = -2;
+    wallBack.position.z = -depth/2;
     meshesRef.current.wall_back = wallBack;
     scene.add(wallBack);
 
     // Left wall
     const wallLeft = new THREE.Mesh(
-      new THREE.BoxGeometry(0.2, 3, 4),
+      new THREE.BoxGeometry(0.2, height, depth),
       wallMaterial
     );
-    wallLeft.position.set(-2, 1.5, 0);
+    wallLeft.position.set(-width/2, height/2, 0);
     meshesRef.current.wall_left = wallLeft;
     scene.add(wallLeft);
 
     // Right wall
     const wallRight = wallLeft.clone();
-    wallRight.position.x = 2;
+    wallRight.position.x = width/2;
     meshesRef.current.wall_right = wallRight;
     scene.add(wallRight);
 
     // Roof parts
-    const roofGeometry = new THREE.BoxGeometry(4.4, 0.2, 3);
+    const roofHeight = 5;
+    const roofOverhang = 0.5;
+    const roofWidth = width + roofOverhang * 2;
+    const roofDepth = depth + roofOverhang * 2;
+    
+    const roofGeometry = new THREE.BoxGeometry(roofWidth/2, 0.2, roofDepth);
     const roofLeft = new THREE.Mesh(roofGeometry, roofMaterial);
-    roofLeft.position.set(-1.1, 3.1, 0);
+    roofLeft.position.set(-roofWidth/4, height + roofHeight/2, 0);
     roofLeft.rotation.z = Math.PI / 6;
     meshesRef.current.roof_left = roofLeft;
     scene.add(roofLeft);
 
     const roofRight = new THREE.Mesh(roofGeometry, roofMaterial);
-    roofRight.position.set(1.1, 3.1, 0);
+    roofRight.position.set(roofWidth/4, height + roofHeight/2, 0);
     roofRight.rotation.z = -Math.PI / 6;
     meshesRef.current.roof_right = roofRight;
     scene.add(roofRight);
