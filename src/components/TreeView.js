@@ -7,15 +7,18 @@ const TreeView = ({ onSelectElements, className }) => {
       id: 'walls',
       name: 'Walls',
       children: [
-        { id: 'wall1', name: 'Wall 1' },
-        { id: 'wall2', name: 'Wall 2' },
+        { id: 'wall_front', name: 'Wall Front' },
+        { id: 'wall_back', name: 'Wall Back' },
+        { id: 'wall_left', name: 'Wall Left' },
+        { id: 'wall_right', name: 'Wall Right' },
       ]
     },
     {
       id: 'roof',
       name: 'Roof',
       children: [
-        { id: 'roof1', name: 'Roof Section 1' },
+        { id: 'roof_left', name: 'Roof Left' },
+        { id: 'roof_right', name: 'Roof Right' },
       ]
     }
   ];
